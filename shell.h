@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define MAX_COMMAND 20
 
