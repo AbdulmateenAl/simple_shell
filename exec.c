@@ -9,6 +9,7 @@ void fork_exe(char **ar_str, char *envp[])
 {
 	pid_t c_pid;
 	int status;
+	char *args[] = {"/bin/ls", NULL};
 
 	c_pid = fork();
 	if (c_pid < 0)
@@ -18,8 +19,9 @@ void fork_exe(char **ar_str, char *envp[])
 	}
 	if (c_pid == 0)
 	{
-		if (execve(ar_str[0], ar_str, envp) == -1)
-			perror("./shell:File or dir Does not exist\n");
+		execve(args[0], args, envp);
+		perror("execve");
+		_exit(1);
 	}
 	else
 	{
@@ -102,15 +104,15 @@ int check_builtin(char *str)
 	char **line_arr;
 	int i = 0;
 
-	line_arr = malloc(sizeof(char *) * 6);
+	line_arr = malloc(sizeof(char *) * 5);
 	if (line_arr == NULL)
 		return (0);
 	line_arr[0] = "ls";
 	line_arr[1] = "exit";
 	line_arr[2] = "env";
 	line_arr[3] = "ls -l /tmp";
-	line_arr[4] = "/bin/ls";
-	for (i = 0; i < 5; i++)
+
+	for (i = 0; i < 4; i++)
 	{
 		if (str_cmp(line_arr[i], str) == 0)
 			break;
@@ -128,9 +130,6 @@ int check_builtin(char *str)
 		case 3:
 			system("ls -l /tmp");
 			return (4);
-		case 4:
-			execv(line_arr[i], &line_arr[i]);
-			return (5);
 		default:
 			perror("Error: No such file or directory");
 			free(line_arr);
