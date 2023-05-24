@@ -9,8 +9,7 @@ void fork_exe(char **ar_str, char *envp[])
 {
 	pid_t c_pid;
 	int status;
-	char *args[] = {"/bin/ls", NULL};
-
+	
 	c_pid = fork();
 	if (c_pid < 0)
 	{
@@ -19,7 +18,7 @@ void fork_exe(char **ar_str, char *envp[])
 	}
 	if (c_pid == 0)
 	{
-		execve(args[0], args, envp);
+		execve(ar_str[0], ar_str, envp);
 		perror("execve");
 		_exit(1);
 	}
