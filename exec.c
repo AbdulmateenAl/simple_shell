@@ -18,9 +18,8 @@ void fork_exe(char **ar_str, char *envp[])
 	}
 	if (c_pid == 0)
 	{
-		execve(ar_str[0], ar_str, envp);
-		perror("execve");
-		_exit(1);
+		if(execve(ar_str[0], ar_str, envp) == -1)
+			perror("execve");
 	}
 	else
 	{
