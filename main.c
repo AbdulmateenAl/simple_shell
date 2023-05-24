@@ -25,7 +25,7 @@ int main(int argc, char *argv[], char *envp[])
 		if (char_num == -1)
 		{
 			free(ptr);
-			exit(EXIT_SUCCESS);
+			exit(0);
 		}
 		if (*ptr != '\n')
 		{
