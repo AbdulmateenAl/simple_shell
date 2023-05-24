@@ -9,7 +9,7 @@ void fork_exe(char **ar_str, char *envp[])
 {
 	pid_t c_pid;
 	int status;
-	
+
 	c_pid = fork();
 	if (c_pid < 0)
 	{
@@ -18,7 +18,7 @@ void fork_exe(char **ar_str, char *envp[])
 	}
 	if (c_pid == 0)
 	{
-		if(execve(ar_str[0], ar_str, envp) == -1)
+		if (execve(ar_str[0], ar_str, envp) == -1)
 			perror("execve");
 	}
 	else
