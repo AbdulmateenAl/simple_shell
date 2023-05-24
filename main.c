@@ -8,7 +8,8 @@
  */
 int main(int argc, char *argv[], char *envp[])
 {
-	char **string, *ptr, *n_str;
+	char **string;
+	char *ptr, *n_str;
 	size_t n = 20, i = 0, pt = 4;
 	ssize_t char_num;
 
@@ -25,7 +26,7 @@ int main(int argc, char *argv[], char *envp[])
 		if (char_num == -1)
 		{
 			free(ptr);
-			exit(0);
+			exit(EXIT_FAILURE);
 		}
 		if (*ptr != '\n')
 		{
