@@ -26,13 +26,13 @@ int main(int argc, char *argv[], char *envp[])
 		if (char_num == -1)
 		{
 			free(ptr);
-			exit(EXIT_FAILURE);
+			exit(EXIT_SUCCESS);
 		}
 		if (*ptr != '\n')
 		{
 			string = strtok_char(ptr);
 			if (str_cmp("exit", string[0]) == 0)
-				break;
+				exit(0);
 			i = check_builtin(string[0]);
 			n_str = file_check(string[0]);
 			if (i == 0 && n_str != NULL)
