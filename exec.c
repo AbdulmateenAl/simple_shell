@@ -1,136 +1,174 @@
-#include "main.h"
+#include "shell.h"
 /**
- * fork_exe - uses fork to execute
- * @ar_str: an array of strings from user input
- * @envp: environment from the parent
- * Return: void
+ * get_builtin - fetches for system builtin function.
+ * @command: command to match.
+ * Return: pointer to the corresponding builtin function.
  */
-void fork_exe(char **ar_str, char *envp[])
+int (*get_builtin(char *command))(char **args, char **front)
 {
-	pid_t c_pid;
-	int status;
+inbuilt_t funcs[] = {
+{"exit", system_exit},
+{"env", system_env},
+{"setenv", system_setenv},
+{"unsetenv", system_unsetenv},
+{"cd", system_cd},
+{"alias", system_alias},
+{"help", system_help},
+{NULL, NULL}};
+int i;
 
-	c_pid = fork();
-	if (c_pid < 0)
-	{
-		perror("error:Fork issue check your code");
-		return;
-	}
-	if (c_pid == 0)
-	{
-		if (execve(ar_str[0], ar_str, envp) == -1)
-			perror("execve");
-	}
-	else
-	{
-		wait(&status);
-	}
-	free(ar_str[0]);
+for (i = 0; funcs[i].name; i++)
+{
+if (str_cmp(funcs[i].name, command) == 0)
+break;
 }
+return (funcs[i].f);
+}
+
 /**
- * file_check - checks if command exists
- * @str: string to be checked
- * Return: add required path
+ * system_exit - process termination for the system shell.
+ * @args: arguments containing the exit value.
+ * @front: pointer to the beginning of args.
+ * Return: 0 success 2 invalid args 3 no args
  */
-char *file_check(char *str)
+int system_exit(char **args, char **front)
 {
-	DIR *dir = opendir("/bin/");
-	char *temp, *cats;
-	struct dirent *entity;
+int i = 0, len_of_int = 10;
+unsigned int num = 0, max = 1 << (sizeof(int) * 8 - 1);
 
-	if (dir == NULL)
-		return (NULL);
-	entity = readdir(dir);
-	while (entity != NULL)
-	{
-		temp = entity->d_name;
-		if (str_cmp(temp, str) == 0)
-		{
-			cats = str_cat("/bin/", str);
-			closedir(dir);
-			return (cats);
-		}
-		entity = readdir(dir);
-	}
-	closedir(dir);
-	return (NULL);
+if (args[0])
+{
+if (args[0][0] == '+')
+{
+i = 1;
+len_of_int++;
 }
+for (; args[0][i]; i++)
+{
+if (i <= len_of_int && args[0][i] >= '0' && args[0][i] <= '9')
+num = (num * 10) + (args[0][i] - '0');
+else
+return (define_error(--args, 2));
+}
+}
+else
+{
+return (-3);
+}
+if (num > max - 1)
+return (define_error(--args, 2));
+args -= 1;
+free_args(args, front);
+free_env();
+free_alias_list(aliases);
+exit(num);
+}
+
 /**
- * path_check - checks for a "/bin/" path of a string
- * @str: the string in question
- * Return: 0 if no path else 1
+ * system_cd - Changes the current directory of the system process.
+ * @args: arguments.
+ * @front: pointer to the beginning of args.
+ * Return: 0 for success -1 when error occur -2 invalid directory
  */
-int path_check(char *str)
+int system_cd(char **args, char __attribute__((__unused__)) **front)
 {
-	char *pth = "/bin?", *ptr, *k;
-	int i = 0, p = 0;
+char **dir_info, *new_line = "\n";
+char *old_pwd = NULL, *pwd = NULL;
+struct stat dir;
 
-	ptr = malloc(sizeof(char) * 50);
-	if (ptr == NULL)
-		return (0);
-	while (pth[i] != '\0')
-	{
-		if (pth[i] != str[i])
-		{
-			free(ptr);
-			return (0);
-		}
-		i++;
-	}
-	while (str[i] != '\0')
-	{
-		ptr[p] = str[i];
-		p++;
-		i++;
-	}
-	ptr[p] = '\0';
-	k = file_check(ptr);
-	if (k != NULL)
-	{
-		free(ptr);
-		return (1);
-	}
-	return (0);
+old_pwd = getcwd(old_pwd, 0);
+if (!old_pwd)
+return (-1);
+
+if (args[0])
+{
+if (*(args[0]) == '-' || str_cmp(args[0], "--") == 0)
+{
+if ((args[0][1] == '-' && args[0][2] == '\0') ||
+args[0][1] == '\0')
+{
+if (get_env("OLDPWD") != NULL)
+(chdir(*get_env("OLDPWD") + 7));
 }
+else
+{
+free(old_pwd);
+return (define_error(args, 2));
+}
+}
+else
+{
+if (stat(args[0], &dir) == 0 && S_ISDIR(dir.st_mode) && (
+			(dir.st_mode & S_IXUSR) != 0))
+chdir(args[0]);
+else
+{
+free(old_pwd);
+return (define_error(args, 2));
+}
+}
+}
+else
+{
+if (get_env("HOME") != NULL)
+chdir(*(get_env("HOME")) + 5);
+}
+
+pwd = getcwd(pwd, 0);
+if (!pwd)
+return (-1);
+
+dir_info = malloc(sizeof(char *) * 2);
+if (!dir_info)
+return (-1);
+
+dir_info[0] = "OLDPWD";
+dir_info[1] = old_pwd;
+if (system_setenv(dir_info, dir_info) == -1)
+return (-1);
+
+dir_info[0] = "PWD";
+dir_info[1] = pwd;
+if (system_setenv(dir_info, dir_info) == -1)
+return (-1);
+if (args[0] && args[0][0] == '-' && args[0][1] != '-')
+{
+write(STDOUT_FILENO, pwd, str_len(pwd));
+write(STDOUT_FILENO, new_line, 1);
+}
+free(old_pwd);
+free(pwd);
+free(dir_info);
+return (0);
+}
+
 /**
- * check_builtin - checks for in built functions
- * @str: string containing function or command
- * Return: 0 when found else 1
+ * system_help - shows info about system builtin commands.
+ * @args: arguments.
+ * @front: pointer to the beginning of args.
+ * Return: 0 for success else -1
  */
-int check_builtin(char *str)
+int system_help(char **args, char __attribute__((__unused__)) **front)
 {
-	char **line_arr;
-	int i = 0;
+if (!args[0])
+help_all();
+else if (str_cmp(args[0], "alias") == 0)
+help_alias();
+else if (str_cmp(args[0], "cd") == 0)
+help_cd();
+else if (str_cmp(args[0], "exit") == 0)
+help_exit();
+else if (str_cmp(args[0], "env") == 0)
+help_env();
+else if (str_cmp(args[0], "setenv") == 0)
+help_setenv();
+else if (str_cmp(args[0], "unsetenv") == 0)
+help_unsetenv();
+else if (str_cmp(args[0], "help") == 0)
+help_help();
+else
+write(STDERR_FILENO, name, str_len(name));
 
-	line_arr = malloc(sizeof(char *) * 5);
-	if (line_arr == NULL)
-		return (0);
-	line_arr[0] = "ls";
-	line_arr[1] = "exit";
-	line_arr[2] = "env";
-	line_arr[3] = "ls -l /tmp";
-
-	for (i = 0; i < 4; i++)
-	{
-		if (str_cmp(line_arr[i], str) == 0)
-			break;
-	}
-	switch (i)
-	{
-		case 0:
-			system("ls");
-			return (1);
-		case 1:
-			return (2);
-		case 2:
-			system("env");
-			return (3);
-		case 3:
-			system("ls -l /tmp");
-			return (4);
-		default:
-			perror("Error: No such file or directory");
-			free(line_arr);
-			return (0);
-	}
+return (0);
 }
+
