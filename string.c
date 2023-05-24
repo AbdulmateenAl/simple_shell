@@ -1,5 +1,4 @@
 #include "main.h"
-​
 /**
  * strtok_char - a function that returns a string
  * @str: an array of strings
@@ -7,33 +6,32 @@
  */
 char **strtok_char(char *str)
 {
-    char **ar_st, *pars;
-    int i = 0, j = 0;
-​
-    ar_st = malloc(8 * sizeof(char *));
-    if (ar_st == NULL)
-    {
-        perror("space allocation failure");
-        exit(1);
-    }
-    pars = strtok(str, " ");
-    while (pars != NULL)
-    {
-        while (pars[j])
-        {
-            if (pars[j] == '\n')
-                pars[j] = '\0';
-            j++;
-        }
-        ar_st[i] = pars;
-        i++;
-        j = 0;
-        pars = strtok(NULL, " ");
-    }
-    ar_st[i] = NULL;
-    return (ar_st);
+	char **ar_st, *pars;
+	int i = 0, j = 0;
+
+	ar_st = malloc(8 * sizeof(char *));
+	if (ar_st == NULL)
+	{
+		perror("space allocation failure");
+		exit(1);
+	}
+	pars = strtok(str, " ");
+	while (pars != NULL)
+	{
+		while (pars[j])
+		{
+			if (pars[j] == '\n')
+				pars[j] = '\0';
+			j++;
+		}
+		ar_st[i] = pars;
+		i++;
+		j = 0;
+		pars = strtok(NULL, " ");
+	}
+	ar_st[i] = NULL;
+	return (ar_st);
 }
-​
 /**
  * str_cmp - used to compare two strings
  * @str1: pointer to first string
@@ -42,14 +40,14 @@ char **strtok_char(char *str)
 */
 int str_cmp(char *str1, char *str2)
 {
-    while (*str1 && *str2 && *str1 == *str2)
-    {
-        str1++;
-        str2++;
-    }
-    if (*str1 != *str2)
-    return (*str1 - *str2);
-    return (0);
+	while (*str1 && *str2 && *str1 == *str2)
+	{
+		str1++;
+		str2++;
+	}
+	if (*str1 != *str2)
+		return (*str1 - *str2);
+	return (0);
 }
 /**
  * str_cat - adds two strings
@@ -59,26 +57,16 @@ int str_cmp(char *str1, char *str2)
 */
 char *str_cat(const char *src, char *dest)
 {
-    const char *tempSrc;
-    char *tempDest;
-​
-    tempDest = dest;
-    tempSrc = src;
-​
-    while (*tempDest != '\0')
-    tempDest++;
-    while (*tempSrc != '\0')
-    *tempDest++ = *tempSrc++;
-    *tempDest = '\0';
-    return (dest);
-}
-void printEnvironment()
-{
-    char **env = environ;
-    printf("Current environment:\n");
-    while (*env != NULL)
-    {
-    printf("%s\n", *env);
-    env++;
-    }
+	const char *tempSrc;
+	char *tempDest;
+
+	tempDest = dest;
+	tempSrc = src;
+
+	while (*tempDest != '\0')
+		tempDest++;
+	while (*tempSrc != '\0')
+		*tempDest++ = *tempSrc++;
+	*tempDest = '\0';
+	return (dest);
 }
